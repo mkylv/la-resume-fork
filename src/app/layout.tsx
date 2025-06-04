@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Provider } from '@/store';
 import { Toaster } from '@/components/ui/sonner';
-import { ClerkProvider } from '@clerk/nextjs';
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import { supabase } from '@/lib/supabase';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { GoogleAnalytics } from '@next/third-parties/google';
@@ -96,11 +97,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <ClerkProvider
-      afterSignOutUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL || '/'}
-      afterMultiSessionSingleSignOutUrl={process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_OUT_URL || '/'}
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-    >
+    <SessionContextProvider supabaseClient={supabase}>
       <html lang={locale}>
         <head>
           <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -123,6 +120,6 @@ export default async function RootLayout({
         </body>
         <GoogleAnalytics gaId="G-DQR3LS5N69" />
       </html>
-    </ClerkProvider>
+    </SessionContextProvider>
   );
 }

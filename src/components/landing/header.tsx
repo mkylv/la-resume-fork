@@ -4,13 +4,23 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from './theme-provider';
 import { FileText, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
+import { useSessionContext, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import LanguageSelectorDropdown from '../language-selector-dropdown';
 
 export function Header() {
   const router = useRouter();
+  const { session } = useSessionContext();
+  const supabase = useSupabaseClient();
+
+  const signIn = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'github' });
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -56,32 +66,30 @@ export function Header() {
           <ThemeToggle />
           <LanguageSelectorDropdown showLabel={false} />
 
-          <SignedIn>
-            <Button
-              onClick={() => {
-                router.push('/templates');
-              }}
-              size="sm"
-              className="bg-purple-500 text-white hover:bg-purple-600"
-            >
-              Go to app
-            </Button>
-            <UserButton afterSignOutUrl="/" afterSwitchSessionUrl="/templates" />
-          </SignedIn>
-          <SignedOut>
-            <SignInButton
-              fallbackRedirectUrl="/templates"
-              signUpFallbackRedirectUrl="/"
-              mode="modal"
-            >
+          {session ? (
+            <>
               <Button
+                onClick={() => {
+                  router.push('/templates');
+                }}
                 size="sm"
-                className="hidden bg-purple-500 text-white hover:bg-purple-600 md:flex"
+                className="bg-purple-500 text-white hover:bg-purple-600"
               >
-                Get Started
+                Go to app
               </Button>
-            </SignInButton>
-          </SignedOut>
+              <Button variant="outline" size="sm" onClick={signOut}>
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="sm"
+              className="hidden bg-purple-500 text-white hover:bg-purple-600 md:flex"
+              onClick={signIn}
+            >
+              Get Started
+            </Button>
+          )}
 
           <Sheet>
             <SheetTrigger asChild>
@@ -121,32 +129,30 @@ export function Header() {
                   FAQ
                 </a>
 
-                <SignedIn>
-                  <Button
-                    onClick={() => {
-                      router.push('/templates');
-                    }}
-                    size="sm"
-                    className="bg-purple-500 text-white hover:bg-purple-600"
-                  >
-                    Go to app
-                  </Button>
-                  <UserButton afterSignOutUrl="/" afterSwitchSessionUrl="/templates" />
-                </SignedIn>
-                <SignedOut>
-                  <SignInButton
-                    fallbackRedirectUrl="/templates"
-                    signUpFallbackRedirectUrl="/"
-                    mode="modal"
-                  >
+                {session ? (
+                  <>
                     <Button
+                      onClick={() => {
+                        router.push('/templates');
+                      }}
                       size="sm"
-                      className="hidden bg-purple-500 text-white hover:bg-purple-600 md:flex"
+                      className="bg-purple-500 text-white hover:bg-purple-600"
                     >
-                      Get Started
+                      Go to app
                     </Button>
-                  </SignInButton>
-                </SignedOut>
+                    <Button variant="outline" size="sm" onClick={signOut}>
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="hidden bg-purple-500 text-white hover:bg-purple-600 md:flex"
+                    onClick={signIn}
+                  >
+                    Get Started
+                  </Button>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
