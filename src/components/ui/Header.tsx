@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { LuGithub } from 'react-icons/lu';
 import { HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { useSessionContext, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { Button } from './button';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -15,6 +15,16 @@ const Header = () => {
   const pathname = usePathname();
   const hideHeader = pathname !== '/';
   const t = useTranslations();
+  const { session } = useSessionContext();
+  const supabase = useSupabaseClient();
+
+  const signIn = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'github' });
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   if (hideHeader) return null;
 
@@ -26,32 +36,28 @@ const Header = () => {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm md:flex">
-          <SignedIn>
-            <Link href="/pricing" className="text-gray-700 hover:text-black">
-              {t('header.pricing')}
-            </Link>
-            <Link href="/templates" className="text-gray-700 hover:text-black">
-              {t('header.templates')}
-            </Link>
-            <Link href="/user-details" className="text-gray-700 hover:text-black">
-              {t('header.userProfile')}
-            </Link>
-            <UserButton afterSignOutUrl="/" afterSwitchSessionUrl="/templates" />
-          </SignedIn>
-          <SignedOut>
+          {session ? (
+            <>
+              <Link href="/pricing" className="text-gray-700 hover:text-black">
+                {t('header.pricing')}
+              </Link>
+              <Link href="/templates" className="text-gray-700 hover:text-black">
+                {t('header.templates')}
+              </Link>
+              <Link href="/user-details" className="text-gray-700 hover:text-black">
+                {t('header.userProfile')}
+              </Link>
+              <Button variant="outline" onClick={signOut}>
+                Sign Out
+              </Button>
+            </>
+          ) : (
             <div className="flex gap-2">
-              <SignInButton
-                fallbackRedirectUrl="/templates"
-                signUpFallbackRedirectUrl="/"
-                mode="modal"
-              >
-                <Button variant="outline">Sign In</Button>
-              </SignInButton>
-              <SignUpButton fallbackRedirectUrl="/" mode="modal">
-                <Button>Sign Up</Button>
-              </SignUpButton>
+              <Button variant="outline" onClick={signIn}>
+                Sign In
+              </Button>
             </div>
-          </SignedOut>
+          )}
           <Link
             className="rounded-full border border-gray-300 p-2"
             href="https://github.com/shubhamku044/la-resume"
@@ -74,35 +80,31 @@ const Header = () => {
       {isMenuOpen && (
         <div className="absolute z-10 w-full bg-white md:hidden">
           <nav className="flex flex-col items-center gap-4 border-b py-4">
-            <SignedIn>
-              <Link
-                href="/templates"
-                className="text-gray-700 hover:text-black"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t('header.templates')}
-              </Link>
-              <Link
-                href="/user-details"
-                className="text-gray-700 hover:text-black"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {t('header.userProfile')}
-              </Link>
-              <UserButton afterSignOutUrl="/" afterSwitchSessionUrl="/templates" />
-            </SignedIn>
-            <SignedOut>
-              <SignInButton
-                fallbackRedirectUrl="/templates"
-                signUpFallbackRedirectUrl="/"
-                mode="modal"
-              >
-                <Button variant="outline">Sign In</Button>
-              </SignInButton>
-              <SignUpButton fallbackRedirectUrl="/" mode="modal">
-                <Button>Sign Up</Button>
-              </SignUpButton>
-            </SignedOut>
+            {session ? (
+              <>
+                <Link
+                  href="/templates"
+                  className="text-gray-700 hover:text-black"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('header.templates')}
+                </Link>
+                <Link
+                  href="/user-details"
+                  className="text-gray-700 hover:text-black"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('header.userProfile')}
+                </Link>
+                <Button variant="outline" onClick={signOut}>
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" onClick={signIn}>
+                Sign In
+              </Button>
+            )}
             <Link
               className="mt-2 rounded-full border border-gray-300 p-2"
               href="https://github.com/shubhamku044/la-resume"

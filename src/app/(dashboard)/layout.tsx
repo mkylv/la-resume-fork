@@ -1,15 +1,16 @@
-import { RedirectToSignUp, SignedIn, SignedOut } from '@clerk/nextjs';
+'use client';
 import { DashboardLayout } from './_components';
+import { useSessionContext } from '@supabase/auth-helpers-react';
+import { useRouter } from 'next/navigation';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <DashboardLayout>
-        <SignedIn>{children}</SignedIn>
-      </DashboardLayout>
-      <SignedOut>
-        <RedirectToSignUp redirectUrl={'/'} />
-      </SignedOut>
-    </>
-  );
+  const { session } = useSessionContext();
+  const router = useRouter();
+
+  if (!session) {
+    router.replace('/');
+    return null;
+  }
+
+  return <DashboardLayout>{children}</DashboardLayout>;
 }

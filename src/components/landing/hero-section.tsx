@@ -6,7 +6,7 @@ import { ArrowRight, Star, StarIcon } from 'lucide-react';
 import { AnimatedBackground } from '@/components';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import { useSessionContext, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 
 export const HeroSection = () => {
@@ -15,6 +15,12 @@ export const HeroSection = () => {
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const y = useTransform(scrollYProgress, [0, 0.8], [0, -50]);
   const t = useTranslations('HomePage');
+  const { session } = useSessionContext();
+  const supabase = useSupabaseClient();
+
+  const signIn = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'github' });
+  };
 
   return (
     <section
@@ -47,7 +53,7 @@ export const HeroSection = () => {
           </p>
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <SignedIn>
+            {session ? (
               <Button
                 size="lg"
                 className="group relative h-12 overflow-hidden rounded-full bg-purple-600 px-8 font-medium text-white transition-all hover:bg-purple-700 hover:shadow-lg"
@@ -60,24 +66,18 @@ export const HeroSection = () => {
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </span>
               </Button>
-            </SignedIn>
-            <SignedOut>
-              <SignInButton
-                fallbackRedirectUrl="/templates"
-                signUpFallbackRedirectUrl="/"
-                mode="modal"
+            ) : (
+              <Button
+                size="lg"
+                className="group relative h-12 overflow-hidden rounded-full bg-purple-600 px-8 font-medium text-white transition-all hover:bg-purple-700 hover:shadow-lg"
+                onClick={signIn}
               >
-                <Button
-                  size="lg"
-                  className="group relative h-12 overflow-hidden rounded-full bg-purple-600 px-8 font-medium text-white transition-all hover:bg-purple-700 hover:shadow-lg"
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    {t('hero.startBuilding')}
-                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                  </span>
-                </Button>
-              </SignInButton>
-            </SignedOut>
+                <span className="relative z-10 flex items-center gap-2">
+                  {t('hero.startBuilding')}
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </Button>
+            )}
             <motion.div className="group relative">
               <Button
                 variant="outline"

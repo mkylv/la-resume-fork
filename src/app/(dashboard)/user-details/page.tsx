@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserDetails } from '@/types/userDetails';
 import { useGetUserDetailsQuery } from '@/store/services/userDetailsApi';
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@supabase/auth-helpers-react';
 
 const getUserDetailsFromLocalStorage = (): UserDetails => {
   if (typeof window === 'undefined') {
@@ -61,7 +61,7 @@ const setUserDetailsToLocalStorage = (userDetails: UserDetails): void => {
 
 export default function UserDetailsPage() {
   const router = useRouter();
-  const { user, isLoaded: isClerkLoaded } = useUser();
+  const { user } = useUser();
   const clerkId = user?.id;
 
   const { isLoading } = useGetUserDetailsQuery(clerkId || '', {
@@ -75,14 +75,14 @@ export default function UserDetailsPage() {
   }, [userDetails]);
 
   useEffect(() => {
-    if (isClerkLoaded) {
+    if (user) {
       if (window.location.pathname === '/user-details') {
         router.replace('/user-details/personal-info');
       }
     }
-  }, [isClerkLoaded, router]);
+  }, [user, router]);
 
-  if (!isClerkLoaded || (clerkId && isLoading)) {
+  if (!user || (clerkId && isLoading)) {
     return <div>Loading...</div>;
   }
   if (!clerkId) {

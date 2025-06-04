@@ -22,7 +22,7 @@ import {
   useGetPersonalInfoQuery,
   useUpdatePersonalInfoMutation,
 } from '@/store/services/personalInfoApi';
-import { useUser } from '@clerk/nextjs';
+import { useUser } from '@supabase/auth-helpers-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
@@ -40,7 +40,7 @@ const formSchema = z.object({
 });
 
 export default function PersonalInfo() {
-  const { user, isLoaded: isClerkLoaded } = useUser();
+  const { user } = useUser();
   const userId = user?.id;
   const [formInitialized, setFormInitialized] = useState(false);
 
@@ -132,7 +132,7 @@ export default function PersonalInfo() {
     }
   }
 
-  const isLoading = !isClerkLoaded || !userId || isQueryLoading || !formInitialized;
+  const isLoading = !user || !userId || isQueryLoading || !formInitialized;
 
   if (isLoading) {
     return (
